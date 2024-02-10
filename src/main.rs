@@ -1,4 +1,8 @@
 use num_bigint::{BigInt, ToBigInt, RandBigInt};
+use std::io;
+use num_traits::sign::Signed;
+use std::io::prelude::*;
+use colored::*;
 
 // This macro is inspired from : https://docs.rs/miller_rabin/latest/src/miller_rabin/lib.rs.html#1-218
 macro_rules! bigint {
@@ -9,15 +13,61 @@ macro_rules! bigint {
 
 fn main()
 {
-    let n: BigInt = BigInt::parse_bytes(b"5", 10).unwrap();
+    println!("Welcome to this Miller-Rabin implementation in Rust!");
+    let mut user_input = String::new();
 
-    let r = is_prime(&n);
-    println!("{:?}", r);
+    while user_input != "q"
+    {
+        // Prompt
+        print!("{}", "> ".blue());
+        io::stdout().flush().unwrap();
+        
+        // Reading from stdin
+        user_input = String::new();
+        io::stdin()
+            .read_line(&mut user_input)
+            .expect("Failed to read line from stdin");
+        
+        
+        // Parsing and checking for errors
+        // let n: BigInt = BigInt::parse_bytes(user_input.trim().as_bytes(), 10).unwrap();
+        let n = BigInt::parse_bytes(user_input.trim().as_bytes(), 10);
+        let n:BigInt = match n {
+            None => {
+                println!("Your input was not an integer :(");
+                continue;
+            },
+            Some(i) => i
+        };
+
+        // Checking and sending result in stdout
+        match is_prime(&(n.abs()))
+        {
+            true => println!("This is a prime number!"),
+            false => println!("This is a composite number!")
+        };
+    }
+
+
 }
 
 // This function run with different values of `a` the `is_a_witness` function
 fn is_prime(n: &BigInt) -> bool
 {
+    // Handling special case
+    if n == &bigint!(3) || n == &bigint!(2)
+    {
+        return true;
+    }
+    if n == &bigint!(1)
+    {
+        return false;
+    }
+    if n % bigint!(2) == bigint!(0)
+    {
+        return false;
+    }
+
     let precision: u16 = 20;    // You can tweak this value but 20 is okay, accuracy of (1/4)^{20}
     let mut rng = rand::thread_rng();
 
